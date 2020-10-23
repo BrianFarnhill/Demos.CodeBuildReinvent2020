@@ -30,11 +30,11 @@ export class DemosCodeBuildReinvent2020Stack extends cdk.Stack {
     const buildProject = new codebuild.Project(this, "DemoBuild", {
       environment: {
         buildImage: codebuild.LinuxBuildImage.STANDARD_4_0,
-        computeType: codebuild.ComputeType.MEDIUM  
+        computeType: codebuild.ComputeType.MEDIUM,
       },
-      source: codebuild.Source.codeCommit({ repository: repo })
+      source: codebuild.Source.codeCommit({ repository: repo }),
     });
-
+    
     buildProject.addToRolePolicy(new iam.PolicyStatement({
       actions: [
         "ssmmessages:CreateControlChannel",

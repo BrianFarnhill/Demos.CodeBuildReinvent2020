@@ -10,6 +10,14 @@ phases:
             - codebuild-breakpoint
     post_build:
         commands:
-            - npm run test
+            - npm test -- --coverage
 
-
+reports:
+    UnitTests:
+        files:
+            - "test-report.xml"
+        file-format: "JUNITXML"
+    CoverageTests:
+        files:
+            - "clover.xml"
+        file-format: "CLOVERXML"
