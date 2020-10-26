@@ -1,5 +1,9 @@
 version: 0.2
 
+env:
+    variables:
+        POINTLESS: "Not the right value"
+
 phases:
     install: 
         commands: 
