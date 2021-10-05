@@ -34,7 +34,7 @@ export class DemosCodeBuildReinvent2020Stack extends cdk.Stack {
       },
       source: codebuild.Source.codeCommit({ repository: repo }),
     });
-    
+
     buildProject.addToRolePolicy(new iam.PolicyStatement({
       actions: [
         "ssmmessages:CreateControlChannel",
@@ -43,7 +43,7 @@ export class DemosCodeBuildReinvent2020Stack extends cdk.Stack {
         "ssmmessages:OpenDataChannel"
       ],
       effect: iam.Effect.ALLOW,
-      resources: [ "*" ]
+      resources: ["*"]
     }));
 
     const sm = ciBuild(this, buildProject);
@@ -52,25 +52,37 @@ export class DemosCodeBuildReinvent2020Stack extends cdk.Stack {
       target: new targets.SfnStateMachine(sm)
     });
 
-    if (!process.env.SLACK_WORKSPACE_ID) throw new Error("Missing environment variable SLACK_WORKSPACE_ID");
-    if (!process.env.SLACK_CHANNEL_ID) throw new Error("Missing environment variable SLACK_CHANNEL_ID");
+    if (process.env.SLACK_ARN !== undefined) {
 
-    const chatChannel = new chatbot.SlackChannelConfiguration(this, "SlackNotifications", {
-      slackChannelConfigurationName: 'DemoBuildNotifications',
-      slackChannelId: process.env.SLACK_CHANNEL_ID,
-      slackWorkspaceId: process.env.SLACK_WORKSPACE_ID
-    });
-    
+      new notifications.CfnNotificationRule(this, "FailedCIBuildNotifications", {
+        name: "FailedDemoBuilds",
+        resource: buildProject.projectArn,
+        detailType: 'FULL',
+        eventTypeIds: ['codebuild-project-build-state-failed'],
+        targets: [{
+          targetAddress: process.env.SLACK_ARN,
+          targetType: 'AWSChatbotSlack'
+        }],
+      });
+      
+    } else if (process.env.SLACK_WORKSPACE_ID !== undefined && process.env.SLACK_CHANNEL_ID) {
+      
+      const chatChannel = new chatbot.SlackChannelConfiguration(this, "SlackNotifications", {
+        slackChannelConfigurationName: 'DemoBuildNotifications',
+        slackChannelId: process.env.SLACK_CHANNEL_ID,
+        slackWorkspaceId: process.env.SLACK_WORKSPACE_ID
+      });
 
-    new notifications.CfnNotificationRule(this, "BuildFailNotifications", {
-      name: "FailedDemoBuilds",
-      resource: buildProject.projectArn,
-      detailType: 'FULL',
-      eventTypeIds: ['codebuild-project-build-state-failed'],
-      targets: [{
-        targetAddress: chatChannel.slackChannelConfigurationArn,
-        targetType: 'AWSChatbotSlack'
-      }],
-    });
+      new notifications.CfnNotificationRule(this, "BuildFailNotifications", {
+        name: "FailedDemoBuilds",
+        resource: buildProject.projectArn,
+        detailType: 'FULL',
+        eventTypeIds: ['codebuild-project-build-state-failed'],
+        targets: [{
+          targetAddress: chatChannel.slackChannelConfigurationArn,
+          targetType: 'AWSChatbotSlack'
+        }],
+      });
+    }
   }
 }
