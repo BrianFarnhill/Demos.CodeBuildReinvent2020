@@ -38,6 +38,9 @@
     "coverageReporters": [
       "text",
       "clover"
+    ],
+    "coveragePathIgnorePatterns": [
+      "serviceWorker.js"
     ]
   }
 }
